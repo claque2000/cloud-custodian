@@ -617,6 +617,35 @@ class AttachedInstanceFilter(ValueFilter):
         return {i['InstanceId']: i for i in instances}
 
 
+@EBS.filter.registry.register('no-delete-on-termination')
+class NoDeleteOnTerminationFilter(Filter):
+    """
+    This filter will return any EBS attached volume that does not have
+    delete-on-termination property set
+
+    :example:
+
+    .. code-block:: yaml
+
+            policies:
+              - name: no-delete-on-termination
+                resource: ebs
+                filters:
+                  - type: no-delete-on-termination
+    """
+    schema = type_schema('no-delete-on-termination')
+
+    def process(self, ebs_list, event=None):
+        return list(filter(None, map(self.process_volume, ebs_list)))
+
+    def process_volume(self, vol):
+        if vol['Attachments']:
+            if not vol['Attachments'][0]['DeleteOnTermination']:
+                return vol
+
+        return None
+
+
 @EBS.filter_registry.register('kms-alias')
 class KmsKeyAlias(ResourceKmsKeyAlias):
 
