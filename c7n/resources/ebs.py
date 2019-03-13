@@ -639,7 +639,7 @@ class NoDeleteOnTerminationFilter(Filter):
         return list(filter(None, map(self.process_volume, ebs_list)))
 
     def process_volume(self, vol):
-        if vol['Attachments']:
+        if vol.get('Attachments'):
             if not vol['Attachments'][0]['DeleteOnTermination']:
                 return vol
 
